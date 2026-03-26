@@ -3,7 +3,6 @@
 Desktop pet + Claude CLI on macOS.
 
 ![demo](./demo.gif)
-![onecheck](./onecheck.png)
 
 Stitch walks around your desktop.  
 Click Stitch to open a Claude chat box.  
