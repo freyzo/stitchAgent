@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+    <channel>
+        <title>StitchAgent</title>
+        <link>https://github.com/ryanstephen/doggo-agent</link>
+        <description>StitchAgent update feed</description>
+        <language>en</language>
+        <!--
+            To publish a new release:
+            1. Build, sign, notarize, staple the app
+            2. Create zip: ditto -c -k - -keepParent StitchAgent.app StitchAgent-vX.Y.zip
+            3. Sign for Sparkle: sign_update StitchAgent-vX.Y.zip
+            4. Add a new <item> below with the edSignature and length
+            5. Upload zip to GitHub Releases
+            6. Commit appcast.xml and push
+        -->
+        <item>
+            <title>v1.0</title>
+            <description>First release of StitchAgent.</description>
+            <pubDate>Sun, 22 Mar 2026 23:35:00 -0700</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/ryanstephen/doggo-agent/releases/download/v1.0/StitchAgent-v1.0.zip"
+                type="application/octet-stream"
+                sparkle:edSignature="Cc5qFPqcDKUBaW2YtJucY5EupoBrYZ5JFvTGR/5QwYLEejO0IQerIlMMaL//pi7ZuBHUoQRw4RLVtXaR+vlVCw=="
+                length="20255742"
+            />
+        </item>
+    </channel>
+</rss>
