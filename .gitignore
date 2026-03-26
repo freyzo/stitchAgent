@@ -1,6 +1,7 @@
 # Xcode
 build/
 DerivedData/
+dist/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcworkspace/xcuserdata/
@@ -15,6 +16,10 @@ xcuserdata/
 .DS_Store
 *.swp
 *~
+
+# Local debug exports
+check*-mov.png
+onecheck.png
 
 # Archives
 *.ipa
