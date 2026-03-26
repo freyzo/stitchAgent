@@ -24,6 +24,12 @@ Hover Stitch to interact.
 
 ## Quick Start
 
+1. Go to [Releases](https://github.com/suzyzou/stitch-agent/releases)
+2. Download the latest `.dmg`
+3. Open the DMG and move `StitchAgent` to `Applications`
+4. Launch `StitchAgent` from `Applications`
+
+Or build from source:
 1. Open `stitch-agent.xcodeproj` in Xcode
 2. Run the `StitchAgent` target
 3. Look at your menu bar for `StitchAgent`
