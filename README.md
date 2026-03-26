@@ -24,7 +24,7 @@ Hover Stitch to interact.
 
 ## Quick Start
 
-1. Go to [Releases](https://github.com/suzyzou/stitch-agent/releases)
+1. Go to [Releases](https://github.com/freyzo/stitchAgent/releases)
 2. Download the latest `.dmg`
 3. Open the DMG and move `StitchAgent` to `Applications`
 4. Launch `StitchAgent` from `Applications`
