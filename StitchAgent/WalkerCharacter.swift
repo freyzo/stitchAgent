@@ -217,7 +217,7 @@ class WalkerCharacter {
 
     private func advanceWalkSpriteFrame() {
         guard spriteImages.count >= 3 else { return }
-        let pinnedVisual = isPinnedByUser && !isIdleForPopover
+        let pinnedVisual = isPinnedByUser
         guard isWalking || pinnedVisual else { return }
         walkAnimStep = walkAnimStep == 1 ? 2 : 1
         spriteLayer?.contents = spriteImages[walkAnimStep]
@@ -225,7 +225,7 @@ class WalkerCharacter {
 
     /// Keep leg cycle running when the user pinned the window (replaces forcing `AVQueuePlayer` to play).
     func resumeSpriteMotionIfPinned() {
-        guard isPinnedByUser, !isIdleForPopover, spriteImages.count >= 3 else { return }
+        guard isPinnedByUser, spriteImages.count >= 3 else { return }
         if walkFrameTimer != nil, walkFrameTimer!.isValid { return }
         startWalkSpriteTimer()
     }
@@ -313,9 +313,6 @@ class WalkerCharacter {
         }
 
         isIdleForPopover = true
-        isWalking = false
-        isPaused = true
-        showIdleSprite()
 
         // Always clear any bubble (thinking or completion) when popover opens
         showingCompletion = false
@@ -531,7 +528,7 @@ class WalkerCharacter {
         let charFrame = window.frame
         let popoverSize = popover.frame.size
         var x = charFrame.midX - popoverSize.width / 2
-        let y = charFrame.maxY - 15
+        let y = charFrame.maxY - 6
 
         let screenFrame = screen.frame
         x = max(screenFrame.minX + 4, min(x, screenFrame.maxX - popoverSize.width - 4))
@@ -919,8 +916,9 @@ class WalkerCharacter {
         currentTravelDistance = max(dockWidth - displayWidth, 0)
         
         // If user dragged character to custom position, keep animation playing at that spot
-        if isPinnedByUser && !isIdleForPopover {
+        if isPinnedByUser {
             resumeSpriteMotionIfPinned()
+            updatePopoverPosition()
             updateThinkingBubble()
             return
         }
@@ -938,7 +936,6 @@ class WalkerCharacter {
             window.setFrameOrigin(NSPoint(x: x, y: y))
             updatePopoverPosition()
             updateThinkingBubble()
-            return
         }
 
         let now = CACurrentMediaTime()
@@ -957,6 +954,7 @@ class WalkerCharacter {
                     y = dockTopY - displayHeight * 0.15 + yOffset
                 }
                 window.setFrameOrigin(NSPoint(x: x, y: y))
+                if isIdleForPopover { updatePopoverPosition() }
                 return
             }
         }
@@ -977,6 +975,7 @@ class WalkerCharacter {
 
             if elapsed >= videoDuration {
                 enterPause()
+                if isIdleForPopover { updatePopoverPosition() }
                 return
             }
 
