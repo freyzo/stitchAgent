@@ -3,6 +3,7 @@
 Desktop pet + Claude CLI on macOS.
 
 ![demo](./docs/media/stitchAgent.gif)
+![claude](./docs/media/claude.png)
 
 claude-pet walks around your desktop.  
 Click claude-pet to open a Claude chat box.  
