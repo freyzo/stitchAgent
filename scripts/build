@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate pixel-art character PNGs (transparent BG) + Xcode build (DoggoAgent → StitchAgent.app).
+# Regenerate pixel-art character PNGs (transparent BG) + Xcode build.
 # Usage:
 #   ./scripts/build           # sprites + build
 #   ./scripts/build --open    # same, then launch the app
@@ -100,7 +100,7 @@ def write_png(path, w, h, buf):
     Path(path).write_bytes(png)
 
 
-base = Path("StitchAgent/Assets.xcassets")
+base = Path("ClaudePet/Assets.xcassets")
 for name, fb in [
     ("character_idle", frame_idle),
     ("character_walk1", frame_walk1),
@@ -120,11 +120,11 @@ print("    wrote character_idle, character_walk1, character_walk2 (@2x)")
 PY
 
 DERIVED="${ROOT}/.derivedData"
-APP="${DERIVED}/Build/Products/Debug/StitchAgent.app"
+APP="$(ls -td "${DERIVED}/Build/Products/Debug/"*.app 2>/dev/null | head -n 1)"
 
 echo "==> xcodebuild (scheme DoggoAgent, Debug)"
 xcodebuild \
-  -project stitch-agent.xcodeproj \
+  -project claude-pet.xcodeproj \
   -scheme DoggoAgent \
   -configuration Debug \
   build ONLY_ACTIVE_ARCH=YES \

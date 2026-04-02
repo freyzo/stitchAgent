@@ -91,7 +91,7 @@ class WalkerCharacter {
     var clickOutsideMonitor: Any?
     var escapeKeyMonitor: Any?
     var currentStreamingText = ""
-    weak var controller: StitchAgentController?
+    weak var controller: ClaudePetController?
     var themeOverride: PopoverTheme?
     var isClaudeBusy: Bool { claudeSession?.isBusy ?? false }
     var thinkingBubbleWindow: NSWindow?

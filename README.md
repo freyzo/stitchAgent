@@ -1,12 +1,12 @@
-# StitchAgent
+# claude-pet
 
 Desktop pet + Claude CLI on macOS.
 
 ![demo](./docs/media/stitchAgent.gif)
 
-Stitch walks around your desktop.  
-Click Stitch to open a Claude chat box.  
-Hover Stitch to interact.
+claude-pet walks around your desktop.  
+Click claude-pet to open a Claude chat box.  
+Hover claude-pet to interact.
 
 ## What It Does
 
@@ -25,13 +25,13 @@ Hover Stitch to interact.
 
 1. Go to [Releases](https://github.com/freyzo/stitchAgent/releases)
 2. Download the latest `.dmg`
-3. Open the DMG and move `StitchAgent` to `Applications`
-4. Launch `StitchAgent` from `Applications`
+3. Open the DMG and move `claude-pet` to `Applications`
+4. Launch `claude-pet` from `Applications`
 
 Or build from source:
 1. Open `stitch-agent.xcodeproj` in Xcode
-2. Run the `StitchAgent` target
-3. Look at your menu bar for `StitchAgent`
+2. Run the app build (target builds `claude-pet.app`)
+3. Look at your menu bar for `claude-pet`
 
 ## Privacy
 

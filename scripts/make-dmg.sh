@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple DMG builder for StitchAgent.
+# Simple DMG builder for claude-pet.
 # Usage:
 #   ./scripts/make-dmg.sh
 #   APP_VERSION=1.0.1 ./scripts/make-dmg.sh
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_PATH="${ROOT_DIR}/stitch-agent.xcodeproj"
+PROJECT_PATH="${ROOT_DIR}/claude-pet.xcodeproj"
 SCHEME_NAME="DoggoAgent"
 CONFIGURATION="Release"
-APP_NAME="StitchAgent"
+APP_NAME="claude-pet"
 APP_VERSION="${APP_VERSION:-1.0.0}"
 DIST_DIR="${ROOT_DIR}/dist"
 STAGING_DIR="${DIST_DIR}/dmg-staging"

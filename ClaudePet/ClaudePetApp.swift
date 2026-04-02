@@ -3,7 +3,7 @@ import AppKit
 import Sparkle
 
 @main
-struct StitchAgentApp: App {
+struct ClaudePetApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
@@ -12,13 +12,13 @@ struct StitchAgentApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var controller: StitchAgentController?
+    var controller: ClaudePetController?
     var statusItem: NSStatusItem?
     let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        controller = StitchAgentController()
+        controller = ClaudePetController()
         controller?.start()
         setupMenuBar()
     }
@@ -32,12 +32,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem?.button {
-            button.image = NSImage(named: "MenuBarIcon") ?? NSImage(systemSymbolName: "dog", accessibilityDescription: "StitchAgent")
+            button.image = NSImage(named: "MenuBarIcon") ?? NSImage(systemSymbolName: "dog", accessibilityDescription: "claude-pet")
         }
 
         let menu = NSMenu()
 
-        let char1Item = NSMenuItem(title: "StitchAgent", action: #selector(toggleChar1), keyEquivalent: "1")
+        let char1Item = NSMenuItem(title: "claude-pet", action: #selector(toggleChar1), keyEquivalent: "1")
         char1Item.state = .on
         menu.addItem(char1Item)
 

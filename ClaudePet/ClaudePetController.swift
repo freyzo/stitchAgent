@@ -1,6 +1,6 @@
 import AppKit
 
-class StitchAgentController {
+class ClaudePetController {
     var characters: [WalkerCharacter] = []
     private var displayLink: CVDisplayLink?
     var debugWindow: NSWindow?
@@ -126,7 +126,7 @@ class StitchAgentController {
         guard let displayLink = displayLink else { return }
 
         let callback: CVDisplayLinkOutputCallback = { _, _, _, _, _, userInfo -> CVReturn in
-            let controller = Unmanaged<StitchAgentController>.fromOpaque(userInfo!).takeUnretainedValue()
+            let controller = Unmanaged<ClaudePetController>.fromOpaque(userInfo!).takeUnretainedValue()
             DispatchQueue.main.async {
                 controller.tick()
             }
