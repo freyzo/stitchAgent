@@ -30,3 +30,4 @@ onecheck.png
 *.dmg
 *.zip
 *.xcworkspace/xcshareddata/swiftpm/
+.derivedData

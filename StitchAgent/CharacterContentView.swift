@@ -10,6 +10,9 @@ class CharacterContentView: NSView {
     private var trackingArea: NSTrackingArea?
     private var hasPushedHandCursor = false
 
+    /// Avoid opaque backing behind transparent sprite pixels (otherwise you see a dark slab).
+    override var isOpaque: Bool { false }
+
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         if let existing = trackingArea {

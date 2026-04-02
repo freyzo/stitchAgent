@@ -101,12 +101,51 @@ class WalkerCharacter {
         self.videoName = videoName
     }
 
+    /// `NSImage.cgImage(forProposedRect:...)` often returns an opaque bitmap (alpha lost). Catalog PNGs need this path.
+    private static func cgImagePreservingAlpha(named resourceName: String) -> CGImage? {
+        guard let image = NSImage(named: resourceName) else { return nil }
+        image.isTemplate = false
+        for case let bmp as NSBitmapImageRep in image.representations {
+            if let cg = bmp.cgImage {
+                return cg
+            }
+        }
+        if let tiff = image.tiffRepresentation, let bmp = NSBitmapImageRep(data: tiff), let cg = bmp.cgImage {
+            return cg
+        }
+        let bmps = image.representations.compactMap { $0 as? NSBitmapImageRep }
+        let pw = bmps.map(\.pixelsWide).max() ?? max(1, Int(round(image.size.width)))
+        let ph = bmps.map(\.pixelsHigh).max() ?? max(1, Int(round(image.size.height)))
+        guard let ctx = CGContext(
+            data: nil,
+            width: pw,
+            height: ph,
+            bitsPerComponent: 8,
+            bytesPerRow: pw * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        ctx.clear(CGRect(x: 0, y: 0, width: pw, height: ph))
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+        image.draw(
+            in: NSRect(x: 0, y: 0, width: pw, height: ph),
+            from: .zero,
+            operation: .copy,
+            fraction: 1.0,
+            respectFlipped: true,
+            hints: [.interpolation: NSImageInterpolation.none]
+        )
+        NSGraphicsContext.restoreGraphicsState()
+        return ctx.makeImage()
+    }
+
     // MARK: - Setup
 
     func setup() {
-        guard let idleImg = NSImage(named: "character_idle")?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              let w1 = NSImage(named: "character_walk1")?.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              let w2 = NSImage(named: "character_walk2")?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        guard let idleImg = Self.cgImagePreservingAlpha(named: "character_idle"),
+              let w1 = Self.cgImagePreservingAlpha(named: "character_walk1"),
+              let w2 = Self.cgImagePreservingAlpha(named: "character_walk2") else {
             print("Sprite images not found (expected character_idle, character_walk1, character_walk2)")
             return
         }
@@ -116,6 +155,7 @@ class WalkerCharacter {
         spriteLayer = CALayer()
         spriteLayer.contents = idleImg
         spriteLayer.contentsGravity = .resizeAspect
+        spriteLayer.isOpaque = false
         spriteLayer.backgroundColor = NSColor.clear.cgColor
         spriteLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
 
@@ -141,6 +181,7 @@ class WalkerCharacter {
         let hostView = CharacterContentView(frame: CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight))
         hostView.character = self
         hostView.wantsLayer = true
+        hostView.layer?.isOpaque = false
         hostView.layer?.backgroundColor = NSColor.clear.cgColor
         hostView.layer?.addSublayer(spriteLayer)
 
