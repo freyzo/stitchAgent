@@ -29,7 +29,7 @@ Hover claude-pet to interact.
 4. Launch `claude-pet` from `Applications`
 
 Or build from source:
-1. Open `stitch-agent.xcodeproj` in Xcode
+1. Open `claude-pet.xcodeproj` in Xcode
 2. Run the app build (target builds `claude-pet.app`)
 3. Look at your menu bar for `claude-pet`
 

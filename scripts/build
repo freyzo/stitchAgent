@@ -127,7 +127,7 @@ xcodebuild \
   -project claude-pet.xcodeproj \
   -scheme DoggoAgent \
   -configuration Debug \
-  build ONLY_ACTIVE_ARCH=YES \
+  clean build ONLY_ACTIVE_ARCH=YES \
   -derivedDataPath "$DERIVED" \
   -quiet
 
