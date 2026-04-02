@@ -18,7 +18,7 @@ class ClaudePetController {
             Self.claudeVisibleKey: true
         ])
 
-        // Character 0: Stitch
+        // Pet 1 / characters[0]: Stitch (`stitch_*` sprites)
         let stitch = WalkerCharacter(
             videoName: "walk-stitch-01",
             spriteIdleName: "stitch_idle",
@@ -42,7 +42,7 @@ class ClaudePetController {
         stitch.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
         stitch.setup()
 
-        // Character 1: Claude (idle alt frame for arm bob)
+        // Pet 2 / characters[1]: Claude (`claude_*` sprites)
         let claude = WalkerCharacter(
             videoName: "walk-claude-01",
             spriteIdleName: "claude_idle",
