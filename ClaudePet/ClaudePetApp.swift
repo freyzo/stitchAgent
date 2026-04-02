@@ -37,13 +37,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
 
-        let char1Item = NSMenuItem(title: "stitch", action: #selector(toggleChar1), keyEquivalent: "1")
+        let char1Item = NSMenuItem(title: "claude", action: #selector(toggleChar1), keyEquivalent: "1")
         char1Item.state = .on
         menu.addItem(char1Item)
-
-        let char2Item = NSMenuItem(title: "claude", action: #selector(toggleChar2), keyEquivalent: "2")
-        char2Item.state = .on
-        menu.addItem(char2Item)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -144,19 +140,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func toggleChar1(_ sender: NSMenuItem) {
         guard let chars = controller?.characters, chars.count > 0 else { return }
         let char = chars[0]
-        if char.window.isVisible {
-            char.window.orderOut(nil)
-            char.pauseSpriteForMenuHide()
-            sender.state = .off
-        } else {
-            char.window.orderFrontRegardless()
-            sender.state = .on
-        }
-    }
-
-    @objc func toggleChar2(_ sender: NSMenuItem) {
-        guard let chars = controller?.characters, chars.count > 1 else { return }
-        let char = chars[1]
         if char.window.isVisible {
             char.window.orderOut(nil)
             char.pauseSpriteForMenuHide()

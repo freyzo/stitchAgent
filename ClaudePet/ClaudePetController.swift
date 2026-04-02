@@ -35,32 +35,8 @@ class ClaudePetController {
         stitch.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
         stitch.setup()
 
-        // Character 2: claude (sunglasses + idle arm bob)
-        let claude = WalkerCharacter(
-            videoName: "walk-stitch-01",
-            spriteIdleName: "claude_idle",
-            spriteWalk1Name: "claude_walk1",
-            spriteWalk2Name: "claude_walk2",
-            spriteIdleAltName: "claude_idle_b"
-        )
-
-        claude.displayHeight = 200
-        claude.accelStart = 0.5
-        claude.fullSpeedStart = 1.0
-        claude.decelStart = 7.5
-        claude.walkStop = 8.0
-        claude.videoDuration = 8.75
-        claude.walkAmountRange = 0.2...0.4
-        claude.yOffset = 0
-        claude.characterColor = NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
-        claude.flipXOffset = 0
-        claude.freeRoamMode = true
-        claude.positionX = 0.65
-        claude.positionY = 0.34
-        claude.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
-        claude.setup()
-
-        characters = [stitch, claude]
+        // Only stitch (delete character 2)
+        characters = [stitch]
         characters.forEach { $0.controller = self }
 
         setupDebugLine()
