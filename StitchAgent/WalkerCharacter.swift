@@ -1,5 +1,5 @@
-import AVFoundation
 import AppKit
+import QuartzCore
 
 class PopoverDragTitleBarView: NSView {
     var onDragChanged: ((NSPoint) -> Void)?
@@ -24,12 +24,14 @@ class PopoverDragTitleBarView: NSView {
 class WalkerCharacter {
     let videoName: String
     var window: NSWindow!
-    var playerLayer: AVPlayerLayer!
-    var queuePlayer: AVQueuePlayer!
-    var looper: AVPlayerLooper!
+    var spriteLayer: CALayer!
+    var spriteImages: [CGImage] = []
+    private var walkFrameTimer: Timer?
+    private let walkFrameInterval: TimeInterval = 0.3
+    private var walkAnimStep: Int = 0
 
-    var videoWidth: CGFloat = 960
-    var videoHeight: CGFloat = 960
+    var videoWidth: CGFloat = 64
+    var videoHeight: CGFloat = 64
     var displayHeight: CGFloat = 300
     var displayWidth: CGFloat { displayHeight * (videoWidth / videoHeight) }
 
@@ -102,19 +104,20 @@ class WalkerCharacter {
     // MARK: - Setup
 
     func setup() {
-        guard let videoURL = Bundle.main.url(forResource: videoName, withExtension: "mov") else {
-            print("Video \(videoName) not found")
+        guard let idleImg = NSImage(named: "character_idle")?.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let w1 = NSImage(named: "character_walk1")?.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let w2 = NSImage(named: "character_walk2")?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            print("Sprite images not found (expected character_idle, character_walk1, character_walk2)")
             return
         }
 
-        let asset = AVAsset(url: videoURL)
-        queuePlayer = AVQueuePlayer()
-        looper = AVPlayerLooper(player: queuePlayer, templateItem: AVPlayerItem(asset: asset))
+        spriteImages = [idleImg, w1, w2]
 
-        playerLayer = AVPlayerLayer(player: queuePlayer)
-        playerLayer.videoGravity = .resizeAspect
-        playerLayer.backgroundColor = NSColor.clear.cgColor
-        playerLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
+        spriteLayer = CALayer()
+        spriteLayer.contents = idleImg
+        spriteLayer.contentsGravity = .resizeAspect
+        spriteLayer.backgroundColor = NSColor.clear.cgColor
+        spriteLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
 
         let screen = NSScreen.main!
         let dockTopY = screen.visibleFrame.origin.y
@@ -139,10 +142,56 @@ class WalkerCharacter {
         hostView.character = self
         hostView.wantsLayer = true
         hostView.layer?.backgroundColor = NSColor.clear.cgColor
-        hostView.layer?.addSublayer(playerLayer)
+        hostView.layer?.addSublayer(spriteLayer)
 
         window.contentView = hostView
         window.orderFrontRegardless()
+    }
+
+    private func invalidateWalkTimer() {
+        walkFrameTimer?.invalidate()
+        walkFrameTimer = nil
+    }
+
+    private func showIdleSprite() {
+        invalidateWalkTimer()
+        walkAnimStep = 0
+        if !spriteImages.isEmpty {
+            spriteLayer?.contents = spriteImages[0]
+        }
+    }
+
+    private func startWalkSpriteTimer() {
+        invalidateWalkTimer()
+        guard spriteImages.count >= 3 else { return }
+        walkAnimStep = 1
+        spriteLayer?.contents = spriteImages[1]
+        walkFrameTimer = Timer.scheduledTimer(withTimeInterval: walkFrameInterval, repeats: true) { [weak self] _ in
+            self?.advanceWalkSpriteFrame()
+        }
+        if let t = walkFrameTimer {
+            RunLoop.main.add(t, forMode: .common)
+        }
+    }
+
+    private func advanceWalkSpriteFrame() {
+        guard spriteImages.count >= 3 else { return }
+        let pinnedVisual = isPinnedByUser && !isIdleForPopover
+        guard isWalking || pinnedVisual else { return }
+        walkAnimStep = walkAnimStep == 1 ? 2 : 1
+        spriteLayer?.contents = spriteImages[walkAnimStep]
+    }
+
+    /// Keep leg cycle running when the user pinned the window (replaces forcing `AVQueuePlayer` to play).
+    func resumeSpriteMotionIfPinned() {
+        guard isPinnedByUser, !isIdleForPopover, spriteImages.count >= 3 else { return }
+        if walkFrameTimer != nil, walkFrameTimer!.isValid { return }
+        startWalkSpriteTimer()
+    }
+
+    /// Stop motion when the character window is hidden from the menu.
+    func pauseSpriteForMenuHide() {
+        showIdleSprite()
     }
 
     // MARK: - Click Handling & Popover
@@ -166,8 +215,7 @@ class WalkerCharacter {
         isIdleForPopover = true
         isWalking = false
         isPaused = true
-        queuePlayer.pause()
-        queuePlayer.seek(to: idleCMTime)
+        showIdleSprite()
 
         if popoverWindow == nil {
             createPopoverWindow()
@@ -211,7 +259,7 @@ class WalkerCharacter {
         isOnboarding = false
         isPaused = true
         pauseEndTime = CACurrentMediaTime() + Double.random(in: 1.0...3.0)
-        queuePlayer.seek(to: idleCMTime)
+        showIdleSprite()
         controller?.completeOnboarding()
     }
 
@@ -226,8 +274,7 @@ class WalkerCharacter {
         isIdleForPopover = true
         isWalking = false
         isPaused = true
-        queuePlayer.pause()
-        queuePlayer.seek(to: idleCMTime)
+        showIdleSprite()
 
         // Always clear any bubble (thinking or completion) when popover opens
         showingCompletion = false
@@ -769,24 +816,13 @@ class WalkerCharacter {
         walkEndPixel = walkEndX * screenFrame.width
 
         updateFlip()
-        queuePlayer.seek(to: .zero)
-        queuePlayer.play()
+        startWalkSpriteTimer()
     }
 
-    // Time in the video where dog faces camera (idle/front-facing frame)
-    var idleFrameTime: CFTimeInterval = 0.0
-    
-    var idleCMTime: CMTime {
-        CMTime(seconds: idleFrameTime, preferredTimescale: 600)
-    }
-    
     func enterPause() {
         isWalking = false
         isPaused = true
-        queuePlayer.pause()
-        // Seek to front-facing idle frame instead of start
-        let idleTime = CMTime(seconds: idleFrameTime, preferredTimescale: 600)
-        queuePlayer.seek(to: idleTime)
+        showIdleSprite()
         // Shorter pauses - more active/naughty behavior
         let delay = Double.random(in: 1.5...4.0)
         pauseEndTime = CACurrentMediaTime() + delay
@@ -796,11 +832,11 @@ class WalkerCharacter {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         if goingRight {
-            playerLayer.transform = CATransform3DIdentity
+            spriteLayer.transform = CATransform3DIdentity
         } else {
-            playerLayer.transform = CATransform3DMakeScale(-1, 1, 1)
+            spriteLayer.transform = CATransform3DMakeScale(-1, 1, 1)
         }
-        playerLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
+        spriteLayer.frame = CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight)
         CATransaction.commit()
     }
 
@@ -843,9 +879,7 @@ class WalkerCharacter {
         
         // If user dragged character to custom position, keep animation playing at that spot
         if isPinnedByUser && !isIdleForPopover {
-            if queuePlayer.rate == 0 {
-                queuePlayer.play()
-            }
+            resumeSpriteMotionIfPinned()
             updateThinkingBubble()
             return
         }

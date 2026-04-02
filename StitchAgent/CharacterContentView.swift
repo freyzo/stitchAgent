@@ -49,8 +49,7 @@ class CharacterContentView: NSView {
         let localPoint = convert(point, from: superview)
         guard bounds.contains(localPoint) else { return nil }
 
-        // AVPlayerLayer is GPU-rendered so layer.render(in:) won't capture video pixels.
-        // Use CGWindowListCreateImage to sample actual on-screen alpha at click point.
+        // Sample on-screen alpha at the click point (works for CALayer bitmap contents too).
         let screenPoint = window?.convertPoint(toScreen: convert(localPoint, to: nil)) ?? .zero
         // Use the full virtual display height for the CG coordinate flip, not just
         // the main screen. NSScreen coordinates have origin at bottom-left of the
@@ -111,7 +110,7 @@ class CharacterContentView: NSView {
             isDragging = true
             character?.isPinnedByUser = true
             // Ensure animation keeps playing when dragged
-            character?.queuePlayer.play()
+            character?.resumeSpriteMotionIfPinned()
         }
         
         if isDragging {

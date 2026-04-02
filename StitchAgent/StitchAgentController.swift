@@ -13,8 +13,6 @@ class StitchAgentController {
 
         // Stitch walking animation - free roaming pet!
         let char1 = WalkerCharacter(videoName: "walk-stitch-01")
-        char1.videoWidth = 960
-        char1.videoHeight = 960
         char1.displayHeight = 200
         char1.accelStart = 0.5
         char1.fullSpeedStart = 1.0
@@ -22,7 +20,6 @@ class StitchAgentController {
         char1.walkStop = 8.0
         char1.videoDuration = 8.75
         char1.walkAmountRange = 0.2...0.4
-        char1.idleFrameTime = 0.0
         char1.yOffset = 0
         char1.characterColor = NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
         char1.flipXOffset = 0

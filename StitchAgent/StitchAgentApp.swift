@@ -142,7 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let char = chars[0]
         if char.window.isVisible {
             char.window.orderOut(nil)
-            char.queuePlayer.pause()
+            char.pauseSpriteForMenuHide()
             sender.state = .off
         } else {
             char.window.orderFrontRegardless()
@@ -155,7 +155,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let char = chars[1]
         if char.window.isVisible {
             char.window.orderOut(nil)
-            char.queuePlayer.pause()
+            char.pauseSpriteForMenuHide()
             sender.state = .off
         } else {
             char.window.orderFrontRegardless()
