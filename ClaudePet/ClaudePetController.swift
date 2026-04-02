@@ -11,26 +11,56 @@ class ClaudePetController {
         // Guard against accidental double-start creating duplicate pets.
         if !characters.isEmpty { return }
 
-        // Stitch walking animation - free roaming pet!
-        let char1 = WalkerCharacter(videoName: "walk-stitch-01")
-        char1.displayHeight = 200
-        char1.accelStart = 0.5
-        char1.fullSpeedStart = 1.0
-        char1.decelStart = 7.5
-        char1.walkStop = 8.0
-        char1.videoDuration = 8.75
-        char1.walkAmountRange = 0.2...0.4
-        char1.yOffset = 0
-        char1.characterColor = NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
-        char1.flipXOffset = 0
-        char1.freeRoamMode = true
-        char1.positionX = 0.5
-        char1.positionY = 0.3  // Start in lower-middle of screen
-        char1.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
+        // Character 1: stitch (no sunglasses, static idle arms)
+        let stitch = WalkerCharacter(
+            videoName: "walk-stitch-01",
+            spriteIdleName: "stitch_idle",
+            spriteWalk1Name: "stitch_walk1",
+            spriteWalk2Name: "stitch_walk2"
+        )
 
-        char1.setup()
+        stitch.displayHeight = 200
+        stitch.accelStart = 0.5
+        stitch.fullSpeedStart = 1.0
+        stitch.decelStart = 7.5
+        stitch.walkStop = 8.0
+        stitch.videoDuration = 8.75
+        stitch.walkAmountRange = 0.2...0.4
+        stitch.yOffset = 0
+        stitch.characterColor = NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
+        stitch.flipXOffset = 0
+        stitch.freeRoamMode = true
+        stitch.positionX = 0.35
+        stitch.positionY = 0.3
+        stitch.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
+        stitch.setup()
 
-        characters = [char1]
+        // Character 2: claude (sunglasses + idle arm bob)
+        let claude = WalkerCharacter(
+            videoName: "walk-stitch-01",
+            spriteIdleName: "claude_idle",
+            spriteWalk1Name: "claude_walk1",
+            spriteWalk2Name: "claude_walk2",
+            spriteIdleAltName: "claude_idle_b"
+        )
+
+        claude.displayHeight = 200
+        claude.accelStart = 0.5
+        claude.fullSpeedStart = 1.0
+        claude.decelStart = 7.5
+        claude.walkStop = 8.0
+        claude.videoDuration = 8.75
+        claude.walkAmountRange = 0.2...0.4
+        claude.yOffset = 0
+        claude.characterColor = NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
+        claude.flipXOffset = 0
+        claude.freeRoamMode = true
+        claude.positionX = 0.65
+        claude.positionY = 0.34
+        claude.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
+        claude.setup()
+
+        characters = [stitch, claude]
         characters.forEach { $0.controller = self }
 
         setupDebugLine()

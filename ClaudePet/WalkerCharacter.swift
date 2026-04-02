@@ -25,9 +25,19 @@ class WalkerCharacter {
     let videoName: String
     var window: NSWindow!
     var spriteLayer: CALayer!
-    var spriteImages: [CGImage] = []
+    // spriteImages layout:
+    // - if idleAlt exists: [idleMain, idleAlt, walk1, walk2]
+    // - else:            [idleMain, walk1, walk2]
+    private var spriteImages: [CGImage] = []
+    private let spriteIdleName: String
+    private let spriteIdleAltName: String?
+    private let spriteWalk1Name: String
+    private let spriteWalk2Name: String
     private var walkFrameTimer: Timer?
+    private var idleAltTimer: Timer?
     private let walkFrameInterval: TimeInterval = 0.3
+    private let idleAltInterval: TimeInterval = 0.48
+    private var idleAltPhase: Bool = false
     private var walkAnimStep: Int = 0
 
     var videoWidth: CGFloat = 64
@@ -97,9 +107,24 @@ class WalkerCharacter {
     var thinkingBubbleWindow: NSWindow?
     var popoverPinnedOrigin: NSPoint?
 
-    init(videoName: String) {
+    init(
+        videoName: String,
+        spriteIdleName: String,
+        spriteWalk1Name: String,
+        spriteWalk2Name: String,
+        spriteIdleAltName: String? = nil
+    ) {
         self.videoName = videoName
+        self.spriteIdleName = spriteIdleName
+        self.spriteIdleAltName = spriteIdleAltName
+        self.spriteWalk1Name = spriteWalk1Name
+        self.spriteWalk2Name = spriteWalk2Name
     }
+
+    private var hasIdleAlt: Bool { spriteImages.count == 4 }
+    private var walk1Index: Int { hasIdleAlt ? 2 : 1 }
+    private var walk2Index: Int { hasIdleAlt ? 3 : 2 }
+    private var idleAltIndex: Int? { hasIdleAlt ? 1 : nil }
 
     /// `NSImage.cgImage(forProposedRect:...)` often returns an opaque bitmap (alpha lost). Catalog PNGs need this path.
     private static func cgImagePreservingAlpha(named resourceName: String) -> CGImage? {
@@ -143,14 +168,22 @@ class WalkerCharacter {
     // MARK: - Setup
 
     func setup() {
-        guard let idleImg = Self.cgImagePreservingAlpha(named: "character_idle"),
-              let w1 = Self.cgImagePreservingAlpha(named: "character_walk1"),
-              let w2 = Self.cgImagePreservingAlpha(named: "character_walk2") else {
-            print("Sprite images not found (expected character_idle, character_walk1, character_walk2)")
+        let idleImg = Self.cgImagePreservingAlpha(named: spriteIdleName)
+        let w1 = Self.cgImagePreservingAlpha(named: spriteWalk1Name)
+        let w2 = Self.cgImagePreservingAlpha(named: spriteWalk2Name)
+        let idleAltImg: CGImage?
+        if let altName = spriteIdleAltName {
+            idleAltImg = Self.cgImagePreservingAlpha(named: altName)
+        } else {
+            idleAltImg = nil
+        }
+
+        guard let idleImg, let w1, let w2 else {
+            print("Sprite images not found for set: idle=\(spriteIdleName), walk1=\(spriteWalk1Name), walk2=\(spriteWalk2Name)")
             return
         }
 
-        spriteImages = [idleImg, w1, w2]
+        spriteImages = idleAltImg != nil ? [idleImg, idleAltImg!, w1, w2] : [idleImg, w1, w2]
 
         spriteLayer = CALayer()
         spriteLayer.contents = idleImg
@@ -194,19 +227,45 @@ class WalkerCharacter {
         walkFrameTimer = nil
     }
 
+    private func invalidateIdleAltTimer() {
+        idleAltTimer?.invalidate()
+        idleAltTimer = nil
+    }
+
     private func showIdleSprite() {
         invalidateWalkTimer()
+        invalidateIdleAltTimer()
         walkAnimStep = 0
+        idleAltPhase = false
         if !spriteImages.isEmpty {
             spriteLayer?.contents = spriteImages[0]
+        }
+
+        // Optional: subtle idle arm bob (used by claude).
+        guard let altIdx = idleAltIndex else { return }
+        guard window.isVisible else { return }
+        // We only bob while paused (not walking).
+        guard isPaused && !isWalking else { return }
+
+        idleAltTimer = Timer.scheduledTimer(withTimeInterval: idleAltInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            guard self.isPaused && !self.isWalking else { return }
+            guard self.window.isVisible else { return }
+            guard self.spriteImages.count > altIdx else { return }
+            self.idleAltPhase.toggle()
+            self.spriteLayer?.contents = self.idleAltPhase ? self.spriteImages[altIdx] : self.spriteImages[0]
+        }
+        if let t = idleAltTimer {
+            RunLoop.main.add(t, forMode: .common)
         }
     }
 
     private func startWalkSpriteTimer() {
         invalidateWalkTimer()
+        invalidateIdleAltTimer()
         guard spriteImages.count >= 3 else { return }
-        walkAnimStep = 1
-        spriteLayer?.contents = spriteImages[1]
+        walkAnimStep = walk1Index
+        spriteLayer?.contents = spriteImages[walkAnimStep]
         walkFrameTimer = Timer.scheduledTimer(withTimeInterval: walkFrameInterval, repeats: true) { [weak self] _ in
             self?.advanceWalkSpriteFrame()
         }
@@ -219,7 +278,7 @@ class WalkerCharacter {
         guard spriteImages.count >= 3 else { return }
         let pinnedVisual = isPinnedByUser
         guard isWalking || pinnedVisual else { return }
-        walkAnimStep = walkAnimStep == 1 ? 2 : 1
+        walkAnimStep = (walkAnimStep == walk1Index) ? walk2Index : walk1Index
         spriteLayer?.contents = spriteImages[walkAnimStep]
     }
 

@@ -26,8 +26,10 @@ from pathlib import Path
 
 W = 64
 SKIN = (255, 136, 102, 255)
+FRAME = (42, 42, 46, 255)      # sunglasses frame
+LENS = (20, 24, 38, 255)       # sunglasses lens
+GLINT = (210, 225, 255, 255)   # sunglasses glint
 BLK = (0, 0, 0, 255)
-
 
 def clear_buf():
     return bytearray(W * W * 4)
@@ -40,42 +42,121 @@ def fill_rect(buf, x, y, rw, rh, rgba):
             o = (j * W + i) * 4
             buf[o : o + 4] = bytes([r, g, b, a])
 
-
-def frame_idle():
-    buf = clear_buf()
+def draw_stitch_body(buf):
+    # Body
     fill_rect(buf, 16, 24, 32, 24, SKIN)
-    fill_rect(buf, 8, 28, 8, 8, SKIN)
-    fill_rect(buf, 48, 28, 8, 8, SKIN)
+    # Arms (stitch: static in all frames)
+    fill_rect(buf, 8, 28, 8, 8, SKIN)    # left
+    fill_rect(buf, 48, 28, 8, 8, SKIN)   # right
+
+def draw_stitch_eyes(buf, eye_y=30):
+    fill_rect(buf, 24, eye_y, 4, 4, BLK)
+    fill_rect(buf, 36, eye_y, 4, 4, BLK)
+
+def draw_legs_idle(buf):
     fill_rect(buf, 20, 48, 6, 8, SKIN)
     fill_rect(buf, 38, 48, 6, 8, SKIN)
-    fill_rect(buf, 24, 30, 4, 4, BLK)
-    fill_rect(buf, 36, 30, 4, 4, BLK)
-    return buf
 
-
-def frame_walk1():
-    buf = clear_buf()
-    fill_rect(buf, 16, 26, 32, 24, SKIN)
-    fill_rect(buf, 8, 30, 8, 8, SKIN)
-    fill_rect(buf, 48, 30, 8, 8, SKIN)
+def draw_legs_walk1(buf):
+    # Left leg up, right leg down
     fill_rect(buf, 20, 46, 6, 6, SKIN)
     fill_rect(buf, 38, 50, 6, 8, SKIN)
-    fill_rect(buf, 24, 32, 4, 4, BLK)
-    fill_rect(buf, 36, 32, 4, 4, BLK)
+
+def draw_legs_walk2(buf):
+    # Right leg up, left leg down
+    fill_rect(buf, 38, 46, 6, 6, SKIN)
+    fill_rect(buf, 20, 50, 6, 8, SKIN)
+
+def draw_sunglasses(buf, eye_y):
+    # Frame top
+    fill_rect(buf, 21, eye_y - 1, 22, 2, FRAME)
+    # Lenses
+    fill_rect(buf, 22, eye_y, 8, 5, LENS)
+    fill_rect(buf, 34, eye_y, 8, 5, LENS)
+    # Bridge
+    fill_rect(buf, 30, eye_y + 1, 4, 4, FRAME)
+    # Glints
+    fill_rect(buf, 23, eye_y + 1, 1, 1, GLINT)
+    fill_rect(buf, 36, eye_y + 1, 1, 1, GLINT)
+
+def draw_claude_body(buf, arm_mode):
+    # Body
+    fill_rect(buf, 16, 24, 32, 24, SKIN)
+    # Arms (claude: swinging)
+    if arm_mode == "idle":
+        fill_rect(buf, 8, 27, 8, 8, SKIN)
+        fill_rect(buf, 49, 29, 8, 8, SKIN)
+    elif arm_mode == "idle_b":
+        fill_rect(buf, 7, 27, 8, 8, SKIN)
+        fill_rect(buf, 49, 27, 8, 8, SKIN)
+    elif arm_mode == "walk1":
+        # left forward/up, right back/down
+        fill_rect(buf, 6, 26, 10, 9, SKIN)
+        fill_rect(buf, 50, 32, 8, 8, SKIN)
+    elif arm_mode == "walk2":
+        # right forward/up, left back/down
+        fill_rect(buf, 4, 32, 8, 8, SKIN)
+        fill_rect(buf, 50, 26, 10, 9, SKIN)
+    else:
+        # fallback
+        fill_rect(buf, 8, 28, 8, 8, SKIN)
+        fill_rect(buf, 48, 28, 8, 8, SKIN)
+
+def frame_stitch_idle():
+    buf = clear_buf()
+    draw_stitch_body(buf)
+    draw_stitch_eyes(buf)
+    draw_legs_idle(buf)
     return buf
 
+def frame_stitch_walk1():
+    buf = clear_buf()
+    # slight body raise to match earlier cycle
+    fill_rect(buf, 16, 26, 32, 24, SKIN)
+    fill_rect(buf, 8, 30, 8, 8, SKIN)
+    fill_rect(buf, 48, 30, 8, 8, SKIN)
+    draw_legs_walk1(buf)
+    draw_stitch_eyes(buf, eye_y=32)
+    return buf
 
-def frame_walk2():
+def frame_stitch_walk2():
     buf = clear_buf()
     fill_rect(buf, 16, 26, 32, 24, SKIN)
     fill_rect(buf, 8, 30, 8, 8, SKIN)
     fill_rect(buf, 48, 30, 8, 8, SKIN)
-    fill_rect(buf, 38, 46, 6, 6, SKIN)
-    fill_rect(buf, 20, 50, 6, 8, SKIN)
-    fill_rect(buf, 24, 32, 4, 4, BLK)
-    fill_rect(buf, 36, 32, 4, 4, BLK)
+    draw_legs_walk2(buf)
+    draw_stitch_eyes(buf, eye_y=32)
     return buf
 
+
+def frame_claude_idle():
+    buf = clear_buf()
+    draw_claude_body(buf, "idle")
+    draw_sunglasses(buf, eye_y=30)
+    draw_legs_idle(buf)
+    return buf
+
+def frame_claude_idle_b():
+    buf = clear_buf()
+    draw_claude_body(buf, "idle_b")
+    draw_sunglasses(buf, eye_y=30)
+    draw_legs_idle(buf)
+    return buf
+
+def frame_claude_walk1():
+    buf = clear_buf()
+    # body pose
+    draw_claude_body(buf, "walk1")
+    draw_sunglasses(buf, eye_y=32)
+    draw_legs_walk1(buf)
+    return buf
+
+def frame_claude_walk2():
+    buf = clear_buf()
+    draw_claude_body(buf, "walk2")
+    draw_sunglasses(buf, eye_y=32)
+    draw_legs_walk2(buf)
+    return buf
 
 def upscale2(buf):
     buf2 = bytearray(128 * 128 * 4)
@@ -102,9 +183,13 @@ def write_png(path, w, h, buf):
 
 base = Path("ClaudePet/Assets.xcassets")
 for name, fb in [
-    ("character_idle", frame_idle),
-    ("character_walk1", frame_walk1),
-    ("character_walk2", frame_walk2),
+    ("stitch_idle", frame_stitch_idle),
+    ("stitch_walk1", frame_stitch_walk1),
+    ("stitch_walk2", frame_stitch_walk2),
+    ("claude_idle", frame_claude_idle),
+    ("claude_idle_b", frame_claude_idle_b),
+    ("claude_walk1", frame_claude_walk1),
+    ("claude_walk2", frame_claude_walk2),
 ]:
     d = base / f"{name}.imageset"
     d.mkdir(parents=True, exist_ok=True)
@@ -116,7 +201,7 @@ for name, fb in [
             % name,
             encoding="utf-8",
         )
-print("    wrote character_idle, character_walk1, character_walk2 (@2x)")
+print("    wrote stitch_* and claude_* (@2x)")
 PY
 
 DERIVED="${ROOT}/.derivedData"
