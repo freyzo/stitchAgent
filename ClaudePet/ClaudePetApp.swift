@@ -14,6 +14,8 @@ struct ClaudePetApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var controller: ClaudePetController?
     var statusItem: NSStatusItem?
+    private weak var stitchVisibilityMenuItem: NSMenuItem?
+    private weak var claudeVisibilityMenuItem: NSMenuItem?
     let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -36,10 +38,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
+        menu.delegate = self
 
-        let char1Item = NSMenuItem(title: "claude", action: #selector(toggleChar1), keyEquivalent: "1")
-        char1Item.state = .on
-        menu.addItem(char1Item)
+        let stitchItem = NSMenuItem(title: "Show Stitch", action: #selector(toggleCharacter(_:)), keyEquivalent: "1")
+        stitchItem.tag = 0
+        stitchItem.state = .on
+        menu.addItem(stitchItem)
+        stitchVisibilityMenuItem = stitchItem
+
+        let claudeItem = NSMenuItem(title: "Show Claude", action: #selector(toggleCharacter(_:)), keyEquivalent: "2")
+        claudeItem.tag = 1
+        claudeItem.state = .on
+        menu.addItem(claudeItem)
+        claudeVisibilityMenuItem = claudeItem
+
+        controller?.syncVisibilityMenuItems(stitchItem: stitchItem, claudeItem: claudeItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -137,17 +150,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func toggleChar1(_ sender: NSMenuItem) {
-        guard let chars = controller?.characters, chars.count > 0 else { return }
-        let char = chars[0]
-        if char.window.isVisible {
-            char.window.orderOut(nil)
-            char.pauseSpriteForMenuHide()
-            sender.state = .off
-        } else {
-            char.window.orderFrontRegardless()
-            sender.state = .on
-        }
+    @objc func toggleCharacter(_ sender: NSMenuItem) {
+        let idx = sender.tag
+        guard let chars = controller?.characters, chars.indices.contains(idx) else { return }
+        let char = chars[idx]
+        let newVisible = !char.window.isVisible
+        controller?.setCharacterVisible(index: idx, visible: newVisible)
+        sender.state = newVisible ? .on : .off
     }
 
     @objc func toggleDebug(_ sender: NSMenuItem) {
@@ -171,4 +180,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-extension AppDelegate: NSMenuDelegate {}
+extension AppDelegate: NSMenuDelegate {
+    func menuWillOpen(_ menu: NSMenu) {
+        guard menu === statusItem?.menu else { return }
+        controller?.syncVisibilityMenuItems(
+            stitchItem: stitchVisibilityMenuItem,
+            claudeItem: claudeVisibilityMenuItem
+        )
+    }
+}

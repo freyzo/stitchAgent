@@ -6,12 +6,19 @@ class ClaudePetController {
     var debugWindow: NSWindow?
     var pinnedScreenIndex: Int = -1
     private static let onboardingKey = "hasCompletedOnboarding"
+    static let stitchVisibleKey = "petVisibleStitch"
+    static let claudeVisibleKey = "petVisibleClaude"
 
     func start() {
         // Guard against accidental double-start creating duplicate pets.
         if !characters.isEmpty { return }
 
-        // Character 1: stitch (no sunglasses, static idle arms)
+        UserDefaults.standard.register(defaults: [
+            Self.stitchVisibleKey: true,
+            Self.claudeVisibleKey: true
+        ])
+
+        // Character 0: Stitch
         let stitch = WalkerCharacter(
             videoName: "walk-stitch-01",
             spriteIdleName: "stitch_idle",
@@ -35,15 +42,73 @@ class ClaudePetController {
         stitch.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.5...1.5)
         stitch.setup()
 
-        // Only stitch (delete character 2)
-        characters = [stitch]
+        // Character 1: Claude (idle alt frame for arm bob)
+        let claude = WalkerCharacter(
+            videoName: "walk-claude-01",
+            spriteIdleName: "claude_idle",
+            spriteWalk1Name: "claude_walk1",
+            spriteWalk2Name: "claude_walk2"
+        )
+
+        claude.displayHeight = 200
+        claude.accelStart = 0.5
+        claude.fullSpeedStart = 1.0
+        claude.decelStart = 7.5
+        claude.walkStop = 8.0
+        claude.videoDuration = 8.75
+        claude.walkAmountRange = 0.2...0.4
+        claude.yOffset = 0
+        claude.characterColor = NSColor(red: 1.0, green: 0.42, blue: 0.0, alpha: 1.0)
+        claude.flipXOffset = 0
+        claude.freeRoamMode = true
+        claude.positionX = 0.62
+        claude.positionY = 0.28
+        claude.pauseEndTime = CACurrentMediaTime() + Double.random(in: 0.8...2.2)
+        claude.setup()
+
+        characters = [stitch, claude]
         characters.forEach { $0.controller = self }
+
+        applySavedCharacterVisibility()
 
         setupDebugLine()
         startDisplayLink()
 
         if !UserDefaults.standard.bool(forKey: Self.onboardingKey) {
             triggerOnboarding()
+        }
+    }
+
+    /// Call after menu loads so checkmarks match windows.
+    func syncVisibilityMenuItems(stitchItem: NSMenuItem?, claudeItem: NSMenuItem?) {
+        guard characters.count >= 2 else { return }
+        stitchItem?.state = characters[0].window.isVisible ? .on : .off
+        claudeItem?.state = characters[1].window.isVisible ? .on : .off
+    }
+
+    func setCharacterVisible(index: Int, visible: Bool) {
+        guard characters.indices.contains(index) else { return }
+        let char = characters[index]
+        if visible {
+            char.window.orderFrontRegardless()
+        } else {
+            if char.isIdleForPopover { char.closePopover() }
+            char.window.orderOut(nil)
+            char.pauseSpriteForMenuHide()
+        }
+        let key = index == 0 ? Self.stitchVisibleKey : Self.claudeVisibleKey
+        UserDefaults.standard.set(visible, forKey: key)
+    }
+
+    private func applySavedCharacterVisibility() {
+        guard characters.count >= 2 else { return }
+        if !UserDefaults.standard.bool(forKey: Self.stitchVisibleKey) {
+            characters[0].window.orderOut(nil)
+            characters[0].pauseSpriteForMenuHide()
+        }
+        if !UserDefaults.standard.bool(forKey: Self.claudeVisibleKey) {
+            characters[1].window.orderOut(nil)
+            characters[1].pauseSpriteForMenuHide()
         }
     }
 

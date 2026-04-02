@@ -325,13 +325,13 @@ class WalkerCharacter {
         terminalView?.inputField.isEditable = false
         terminalView?.inputField.placeholderString = ""
         let welcome = """
-        aloha! i'm stitch — your naughty lil desktop pet!
+        aloha! i'm stitch — your naughty lil desktop pet! claude is roaming too.
 
-        i'll roam around your screen randomly. hover over me and i'll say hi! click me to open a Claude AI chat.
+        i'll wander the screen randomly. hover for hi! click either of us for Claude chat (each pet has its own chat).
 
-        check the menu bar icon (top right) for themes, sounds, and more options.
+        menu bar (top right): Show Stitch / Show Claude if you only want one visible, plus themes and sounds.
 
-        click anywhere outside to dismiss, then click me again to start chatting!
+        click outside to dismiss, then click me again to start chatting!
         """
         terminalView?.appendStreamingText(welcome)
         terminalView?.endStreaming()
